@@ -1,7 +1,9 @@
 let users = [];
+let userIdCounter = 1;
 
 const resetUsers = () => {
   users = [];
+  userIdCounter = 1;
 };
 
 const getAllUsers = () => {
@@ -14,7 +16,7 @@ const getUserById = (id) => {
 
 const createUser = (name) => {
   const user = {
-    id: Math.floor(Math.random() * 1000),
+    id: userIdCounter++,
     name,
   };
 
@@ -25,6 +27,10 @@ const createUser = (name) => {
 
 const updateUser = ({ id, name }) => {
   const user = getUserById(+id);
+
+  if (!user) {
+    return null;
+  }
 
   Object.assign(user, { name });
 

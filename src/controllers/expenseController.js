@@ -3,86 +3,123 @@ const userService = require('../services/userService');
 
 const get = (req, res) => {
   const { userId, categories, from, to } = req.query;
-  const filteredExpenses = expensesService.getAllExpenses(
-    userId,
-    categories,
-    from,
-    to,
-  );
 
-  res.status(200).send(filteredExpenses);
+  try {
+    const filteredExpenses = expensesService.getAllExpenses(
+      userId,
+      categories,
+      from,
+      to,
+    );
+
+    res.status(200).json(filteredExpenses);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 const getOne = (req, res) => {
   const { id } = req.params;
-  const expense = expensesService.getExpenseById(id);
 
-  if (!expense) {
-    res.sendStatus(404);
+  try {
+    const expense = expensesService.getExpenseById(id);
 
-    return;
+    if (!expense) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    res.status(200).json(expense);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  res.send(expense);
 };
 
 const create = (req, res) => {
   const { userId, spentAt, title, amount, category, note } = req.body;
-  const user = userService.getUserById(userId);
 
-  if (!user || !spentAt || !title || !amount || !category || !note) {
-    res.sendStatus(400);
-
-    return;
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
   }
 
-  const expense = expensesService.createExpense(
-    userId,
-    spentAt,
-    title,
-    amount,
-    category,
-    note,
-  );
+  if (!spentAt) {
+    return res.status(400).json({ error: 'SpentAt (date) is required' });
+  }
 
-  res.statusCode = 201;
-  res.send(expense);
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Amount is required' });
+  }
+
+  if (!category) {
+    return res.status(400).json({ error: 'Category is required' });
+  }
+
+  if (!note) {
+    return res.status(400).json({ error: 'Note is required' });
+  }
+
+  const user = userService.getUserById(userId);
+
+  if (!user) {
+    return res.status(400).json({ error: 'User not found' });
+  }
+
+  try {
+    const expense = expensesService.createExpense(
+      userId,
+      spentAt,
+      title,
+      amount,
+      category,
+      note,
+    );
+
+    res.status(201).json(expense);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 const remove = (req, res) => {
   const { id } = req.params;
-  const expense = expensesService.getExpenseById(id);
 
-  if (!expense) {
-    res.sendStatus(404);
+  try {
+    const expense = expensesService.getExpenseById(id);
 
-    return;
+    if (!expense) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    expensesService.deleteExpense(id);
+    res.sendStatus(204);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  expensesService.deleteExpense(id);
-
-  res.sendStatus(204);
 };
 
 const update = (req, res) => {
   const { id } = req.params;
-  const expense = expensesService.getExpenseById(id);
 
-  if (!expense) {
-    res.sendStatus(404);
+  try {
+    const expense = expensesService.getExpenseById(id);
 
-    return;
+    if (!expense) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    const updatedExpense = expensesService.updateExpense(id, req.body);
+
+    if (!updatedExpense) {
+      return res.status(404).json({ error: 'Failed to update expense' });
+    }
+
+    res.status(200).json(updatedExpense);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const updatedExpense = expensesService.updateExpense(id, req.body);
-
-  if (!updatedExpense) {
-    res.sendStatus(404);
-
-    return;
-  }
-
-  res.status(200).send(updatedExpense);
 };
 
 module.exports = {

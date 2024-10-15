@@ -1,7 +1,9 @@
 let expenses = [];
+let nextId = 1;
 
 const resetExpenses = () => {
   expenses = [];
+  nextId = 1;
 };
 
 const getAllExpenses = (userId, categories, from, to) => {
@@ -18,7 +20,7 @@ const getExpenseById = (id) => {
 
 const createExpense = (userId, spentAt, title, amount, category, note) => {
   const expense = {
-    id: Math.floor(Math.random() * 1000),
+    id: nextId++,
     userId,
     spentAt,
     title,
